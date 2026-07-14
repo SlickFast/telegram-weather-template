@@ -16,11 +16,11 @@ import json, os, sys, urllib.request, urllib.parse, uuid, datetime
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")   # not needed for `live` mode
 TG = f"https://api.telegram.org/bot{TOKEN}"
 
-CITY     = os.environ.get("CITY", "Asunción")
-LAT      = float(os.environ.get("LATITUDE", "-25.2637"))
-LON      = float(os.environ.get("LONGITUDE", "-57.5759"))
-TIMEZONE = os.environ.get("TIMEZONE", "America/Asuncion")   # IANA name; also used for labels
-UNITS    = os.environ.get("UNITS", "metric").lower()        # metric (°C, km/h) | imperial (°F, mph)
+CITY     = os.environ.get("CITY", "Chicago")
+LAT      = float(os.environ.get("LATITUDE", "41.8781"))
+LON      = float(os.environ.get("LONGITUDE", "-87.6298"))
+TIMEZONE = os.environ.get("TIMEZONE", "America/Chicago")    # IANA name; also used for labels
+UNITS    = os.environ.get("UNITS", "imperial").lower()      # metric (°C, km/h) | imperial (°F, mph)
 IMPERIAL = UNITS == "imperial"
 T_UNIT, W_UNIT = ("°F", " mph") if IMPERIAL else ("°C", " km/h")
 

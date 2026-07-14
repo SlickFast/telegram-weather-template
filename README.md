@@ -46,8 +46,7 @@ run's log — it prints your `chat_id`. Add it as the `TELEGRAM_CHAT_ID` secret.
 | `TIMEZONE` | `Europe/Berlin` | IANA name |
 | `UNITS` | `metric` | `metric` (°C, km/h) or `imperial` (°F, mph) |
 
-*(Skip this step and you get the default city: Asunción, Paraguay — the city this template
-was born for.)*
+*(Skip this step and you get the default: Chicago — same as the live demo above.)*
 
 **6. Test it** → Actions → weather → Run workflow → mode: `send`. Check your Telegram. ☀️
 
