@@ -1,0 +1,28 @@
+name: weather
+on:
+  schedule:
+    # 09:43 UTC daily. Pick an ODD minute — GitHub's cron queue jams at :00, and
+    # scheduled runs are best-effort (they can drift late). Adjust to your morning.
+    - cron: "43 9 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "send | discover (discover prints your chat_id — run it once during setup)"
+        default: "send"
+
+jobs:
+  weather:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: run
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SLICKFAST_API_KEY: ${{ secrets.SLICKFAST_API_KEY }}
+          CITY: ${{ vars.CITY }}
+          LATITUDE: ${{ vars.LATITUDE }}
+          LONGITUDE: ${{ vars.LONGITUDE }}
+          TIMEZONE: ${{ vars.TIMEZONE }}
+          UNITS: ${{ vars.UNITS }}
+        run: python3 weather.py ${{ github.event.inputs.mode || 'send' }}
