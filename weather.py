@@ -3,6 +3,8 @@
 #
 # Modes:  discover  → print the chat ids your bot can see (message the bot first!)
 #         send      → fetch weather, render via api.slickfast.com, send to your chat
+#         live      → publish/refresh a LIVE chart URL instead (no Telegram needed) —
+#                     embed the printed URL in a README or webpage; re-runs keep it fresh
 #
 # Configure via env (see .github/workflows/weather.yml — GitHub Variables/Secrets):
 #   TELEGRAM_BOT_TOKEN  (secret)  from @BotFather
@@ -11,7 +13,7 @@
 #   CITY / LATITUDE / LONGITUDE / TIMEZONE / UNITS (vars) — your place; UNITS = metric|imperial
 import json, os, sys, urllib.request, urllib.parse, uuid, datetime
 
-TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")   # not needed for `live` mode
 TG = f"https://api.telegram.org/bot{TOKEN}"
 
 CITY     = os.environ.get("CITY", "Asunción")
@@ -131,10 +133,30 @@ def send_photo(png, chat_id):
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.load(r)
 
+def publish_live(name):
+    # Publish/refresh a LIVE chart: permanent URL, always shows the latest push.
+    # A freshness stamp is appended to the title so viewers can SEE it's current.
+    from zoneinfo import ZoneInfo
+    spec = build_spec(weather())
+    et = datetime.datetime.now(ZoneInfo("America/New_York"))
+    spec["title"] += f"  ·  updated {et.strftime('%b %-d, %-I:%M %p')} ET"
+    req = urllib.request.Request(
+        f"https://api.slickfast.com/live/{name}",
+        data=json.dumps(spec).encode(),
+        headers={"content-type": "application/json",
+                 "authorization": f"Bearer {os.environ['SLICKFAST_API_KEY']}"})
+    with urllib.request.urlopen(req, timeout=90) as r:
+        out = json.load(r)
+    print("live chart updated:")
+    print("  SVG:", out.get("svg"))
+    print("  PNG:", out.get("png"))
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "send"
     if mode == "discover":
         discover()
+    elif mode == "live":
+        publish_live(sys.argv[2] if len(sys.argv) > 2 else "my-weather")
     else:
         png = render_png(build_spec(weather()))
         out = send_photo(png, os.environ["TELEGRAM_CHAT_ID"])

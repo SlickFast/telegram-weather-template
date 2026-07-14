@@ -7,6 +7,11 @@ Current temp + feels-like, chance of rain, wind, humidity, an hourly temperature
 the 7-day forecast — rendered as one crisp retina image by the SlickFast API and sent to your
 chat while you're waking up.
 
+**This image is LIVE** — Chicago's weather right now, produced by this exact template and
+refreshed daily (the title shows when it last updated):
+
+![Live demo: Chicago weather dashboard, updated daily by this template](https://api.slickfast.com/live/ed2b89aea403b84d463e5fd0adc7384e.svg)
+
 Works for **any city on Earth** (weather data by [Open-Meteo](https://open-meteo.com), free,
 no key needed).
 
@@ -59,6 +64,15 @@ change your delivery time.
   [SlickFast chart-spec reference](https://github.com/SlickFast/slickfast/blob/main/packages/render-core/SPEC.md).
 - **Delivery time** — the `cron` line in the workflow (UTC). Tip: use an odd minute; GitHub's
   scheduler is congested at :00 and runs can drift late — fine for a morning brief.
+
+## Bonus: a live weather URL (no Telegram needed)
+
+The `live` mode publishes your dashboard as a **permanent image URL** that always shows the
+latest push — embed it in a README or webpage (that's how the Chicago demo above works):
+
+```bash
+python3 weather.py live my-weather
+```
 
 ## Good-to-knows
 

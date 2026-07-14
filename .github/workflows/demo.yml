@@ -1,0 +1,24 @@
+name: demo
+# Refreshes the LIVE Chicago demo image embedded in this repo's README.
+# Runs ONLY in the upstream SlickFast repo — in your copy of the template this
+# workflow is a harmless no-op (feel free to delete it).
+on:
+  schedule:
+    - cron: "17 10 * * *"   # daily, odd minute (GitHub cron drifts at :00)
+  workflow_dispatch: {}
+
+jobs:
+  demo:
+    if: github.repository == 'SlickFast/telegram-weather-template'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: refresh Chicago demo
+        env:
+          SLICKFAST_API_KEY: ${{ secrets.SLICKFAST_API_KEY }}
+          CITY: Chicago
+          LATITUDE: "41.8781"
+          LONGITUDE: "-87.6298"
+          TIMEZONE: America/Chicago
+          UNITS: imperial
+        run: python3 weather.py live chicago-demo
