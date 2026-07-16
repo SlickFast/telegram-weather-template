@@ -12,6 +12,9 @@ on:
 
 jobs:
   weather:
+    # Skips in the upstream template repo (no Telegram secrets there — only the demo
+    # workflow runs upstream). In YOUR copy this condition is true and it runs daily.
+    if: github.repository != 'SlickFast/telegram-weather-template'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
