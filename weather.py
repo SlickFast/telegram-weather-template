@@ -47,11 +47,30 @@ def weather():
         **({"temperature_unit": "fahrenheit", "wind_speed_unit": "mph"} if IMPERIAL else {}),
         "current": "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation",
         "hourly": "temperature_2m",
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max",
         "forecast_days": 7,
     })
     with urllib.request.urlopen(f"https://api.open-meteo.com/v1/forecast?{q}", timeout=30) as r:
         return json.load(r)
+
+def air_quality():
+    # Open-Meteo's air-quality API (same free/no-key deal, separate endpoint).
+    # Fail-soft: if it's down, the dashboard just skips the AQI tile.
+    q = urllib.parse.urlencode({"latitude": LAT, "longitude": LON, "timezone": TIMEZONE,
+                                "current": "us_aqi"})
+    try:
+        with urllib.request.urlopen(f"https://air-quality-api.open-meteo.com/v1/air-quality?{q}", timeout=30) as r:
+            return json.load(r)["current"]["us_aqi"]
+    except Exception:
+        return None
+
+def aqi_color(aqi):
+    # US EPA bands: green/yellow/orange/red/purple/maroon.
+    for limit, color in [(50, "#22c55e"), (100, "#eab308"), (150, "#f97316"),
+                         (200, "#ef4444"), (300, "#a855f7")]:
+        if aqi <= limit:
+            return color
+    return "#7f1d1d"
 
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -81,6 +100,17 @@ def build_spec(w):
     now = local_now(w)
     hlabels, htemps = next_hours(w, now)
     W1, W2 = 500, 1020   # 1-col slot width, 2-col (full) slot width
+    # AQI (gauge, EPA-band color) + today's max UV — the "should I go outside" row.
+    # Skipped as a pair if the air-quality API is unavailable, keeping the grid even.
+    aqi = air_quality()
+    aqi_tiles = [] if aqi is None else [
+        {"chart": {"type": "gauge", "background": TILE, "width": W1, "height": 300,
+                   "title": "air quality (US AQI)", "value": round(aqi), "max": 300,
+                   "color": aqi_color(aqi)}},
+        {"chart": {"type": "kpi", "background": TILE, "width": W1, "height": 300,
+                   "label": "max UV index today", "value": round(day["uv_index_max"][0]),
+                   "color": "#f59e0b" if day["uv_index_max"][0] >= 6 else GRN}},
+    ]
     return {
         "type": "dashboard",
         "title": f"{CITY} · {now.strftime('%a · %b %-d · %-I:%M %p')}",
@@ -101,6 +131,7 @@ def build_spec(w):
             {"chart": {"type": "kpi", "background": TILE, "width": W1, "height": 300,
                        "label": "humidity", "value": round(cur["relative_humidity_2m"]),
                        "valueUnit": "%", "color": PINK}},
+            *aqi_tiles,
             {"chart": {"type": "line", "background": TILE, "width": W2, "height": 300,
                        "title": f"hourly temperature ({T_UNIT})", "curve": "smooth", "area": True,
                        "data": {"labels": hlabels, "series": [
